@@ -4,10 +4,8 @@ $fn = 20;
 // https://allfightsticks.com/collections/9-5-enclosures/products/9-5-button-panel?variant=21327143141455
 width = 229;
 depth = 173.5;
-height = 45;
-screw_radius = 2.14;
-screw_offset_x = 7.7;
-screw_offset_y = 4.5;
+bolt_offset_x = 9.6; // distance to center of hole
+bolt_offset_y = 6.5; // distance to center of hole
 corner_radius = 5;
 
 // FocusAttack Blank Plexi Cover for AllFightSticks 9.5" Solid Bottom Panel
@@ -18,38 +16,121 @@ plexi_depth = depth;
 // Sanwa SDM-18 buttons
 // https://paradisearcadeshop.com/home/controls/buttons/sanwa/358-sanwa-sdm-series
 button_diameter = 18;
+button_tab_diameter = 24;
 button_panel_thickness = 3;
 
-wall_thickness = 10;
+// Brook Wireless Fighting Board
+// https://www.brookaccessory.com/detail/41130595/
+usb_panel_width = 26;
+usb_panel_height = 31;
+usb_panel_depth = 1.5;
 
-spacer = 20;
-offset_x = width/2 + spacer;
-offset_y = depth/2 + spacer;
+// M4 x 20mm internal hex button-head screw
+bolt_diameter = 4;
+bolt_length = 20;
+bolt_nut_thickness = 3.2;
+bolt_nut_width = 8; // outer
+bolt_nut_clearance = 10;
 
-module quadrant() {
+height = 45;
+corner_overlap = 20;
+end_corner_height = 8;
+corner_chamfer = 16;
+button_spacing = button_tab_diameter*1.2;
+
+module end_panel(wall_thickness) {
 	difference() {
 		union() {
-			translate([corner_radius, -corner_radius, 0]) cylinder(height, r=corner_radius);
-			translate([0, -depth/2, 0]) cube([wall_thickness, depth/2 - corner_radius, height]);
-			translate([corner_radius, -wall_thickness, 0]) cube([width/2 - corner_radius, wall_thickness, height]);
-			translate([wall_thickness, -wall_thickness*1.5, 0]) rotate(45) cube([wall_thickness, wall_thickness, height]);
+			cube([width - corner_radius*2, height, wall_thickness], center=true);
+			for (x = [-1, 1]) {
+				translate([x*(width/2 - corner_radius), 0, -wall_thickness/2 + corner_radius]) {
+					r = corner_radius;
+					rotate([90, 0, 0]) {
+						intersection() {
+							cylinder(height, r=r, center=true, $fn=4);
+							mirror([x > 0 ? 1 : 0, 0, 0]) translate([0, 0, -height/2]) {
+								linear_extrude(height=height) polygon([[-r, r], [-r, -r], [r, -r]]);
+							}
+						}
+					}
+				}
+				overlap_length = corner_overlap - corner_radius;
+				// overlap side
+				translate([x*(width/2 - wall_thickness/2), 0, -wall_thickness/2 + corner_radius + overlap_length/2]) {
+					cube([wall_thickness, height, overlap_length], center=true);
+				}
+				// corner chamfer
+				translate([x*(width/2), height/2 - end_corner_height*2, -wall_thickness/2]) {
+					mirror([x > 0 ? 1 : 0, 0, 0])
+					intersection() {
+						rotate([0, 45, 0]) cube([corner_chamfer*2, height*2, corner_chamfer*2], center=true);
+						translate([wall_thickness, 0, wall_thickness]) {
+							cube([width/2, end_corner_height*2, corner_overlap - wall_thickness], center=false);
+						}
+					}
+				}
+			}
 		}
-		translate([screw_offset_x + screw_radius, -screw_offset_y - screw_radius, 0]) cylinder(height*3, r=screw_radius, center=true);
+		for (x = [-1, 1]) {
+			// bolt hole
+			translate([x*(width/2 - bolt_offset_x), height/2 - end_corner_height*2, -wall_thickness/2 + bolt_offset_y]) {
+				rotate([-90, 0, 0]) cylinder(height, d=bolt_diameter, center=false);
+				rotate([0, -45, 0]) cube([bolt_diameter/2, height, bolt_diameter/2], center=false);
+				bolt_depression = bolt_nut_thickness/2;
+				translate([0, bolt_depression, 0]) {
+					rotate([90, 0, 0]) cylinder(bolt_nut_clearance + bolt_depression, d=bolt_nut_width, center=false, $fn=6);
+				}
+				mirror([0, 1, 0]) translate([-bolt_nut_width/2, 0, 0]) cube([bolt_nut_width, bolt_nut_clearance, bolt_nut_width], center=false);
+			}
+
+			// overlap cutout
+			translate([x*(width/2), height/2 - end_corner_height*3/2, -wall_thickness/2]) {
+				cube([corner_overlap*2, end_corner_height, corner_overlap*4], center=true);
+			}
+
+			// diagonal corner cut
+			translate([x*(width/2), height/2 - end_corner_height*1.9, -wall_thickness/2]) {
+				mirror([0, 1, 0]) rotate([0, -45, 0]) cube([width, height, width], center=false);
+			}
+		}
 	}
 }
 
-translate([-offset_x, offset_y, 0]) {
-	quadrant();
+module button_hole() {
+	cylinder(button_panel_thickness*3, d=button_diameter, center=true);
+	translate([0, 0, button_panel_thickness])
+		cylinder(button_panel_thickness*2, d=button_tab_diameter, center=false);
 }
 
-translate([offset_x, offset_y, 0]) {
-	mirror([1, 0, 0]) quadrant();
+module back_panel() {
+	wall_thickness = 8;
+	difference() {
+		union() {
+			end_panel(wall_thickness);
+		}
+		translate([0, height/2, 0]) {
+			cube([usb_panel_width, usb_panel_height*2, usb_panel_depth], center=true);
+			cube([usb_panel_width-1, usb_panel_height*2, wall_thickness*2], center=true);
+		}
+		translate([0, height/2 - usb_panel_height/2, -wall_thickness/2]) {
+			offset = usb_panel_width/2;
+			for (x = [
+				-(offset + button_spacing*2),
+				-(offset + button_spacing),
+				(offset + button_spacing),
+				(offset + button_spacing*2),
+			]) {
+				translate([x, 0, 0]) {
+					button_hole();
+				}
+			}
+		}
+	}
 }
 
-translate([-offset_x, -offset_y, 0]) {
-	mirror([0, 1, 0]) quadrant();
+module front_panel() {
+	end_panel(4);
 }
 
-translate([offset_x, -offset_y, 0]) {
-	mirror([1, 0, 0]) mirror([0, 1, 0]) quadrant();
-}
+back_panel();
+translate([0, height*1.5, 0]) front_panel();
