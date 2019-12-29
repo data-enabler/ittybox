@@ -41,9 +41,14 @@ button_spacing = button_tab_diameter*1.2;
 module end_panel(wall_thickness) {
 	difference() {
 		union() {
-			cube([width - corner_radius*2, height, wall_thickness], center=true);
+			// Main panel
+			translate([0, 0, wall_thickness/2]) {
+				cube([width - corner_radius*2, height, wall_thickness], center=true);
+			}
+
 			for (x = [-1, 1]) {
-				translate([x*(width/2 - corner_radius), 0, -wall_thickness/2 + corner_radius]) {
+				// Rounded corner
+				translate([x*(width/2 - corner_radius), 0, corner_radius]) {
 					r = corner_radius;
 					rotate([90, 0, 0]) {
 						intersection() {
@@ -55,12 +60,14 @@ module end_panel(wall_thickness) {
 					}
 				}
 				overlap_length = corner_overlap - corner_radius;
-				// overlap side
-				translate([x*(width/2 - wall_thickness/2), 0, -wall_thickness/2 + corner_radius + overlap_length/2]) {
+
+				// Overlap side
+				translate([x*(width/2 - wall_thickness/2), 0, corner_radius + overlap_length/2]) {
 					cube([wall_thickness, height, overlap_length], center=true);
 				}
-				// corner chamfer
-				translate([x*(width/2), height/2 - end_corner_height*2, -wall_thickness/2]) {
+
+				// Corner chamfer
+				translate([x*(width/2), height/2 - end_corner_height*2, 0]) {
 					mirror([x > 0 ? 1 : 0, 0, 0])
 					intersection() {
 						rotate([0, 45, 0]) cube([corner_chamfer*2, height*2, corner_chamfer*2], center=true);
@@ -72,8 +79,8 @@ module end_panel(wall_thickness) {
 			}
 		}
 		for (x = [-1, 1]) {
-			// bolt hole
-			translate([x*(width/2 - bolt_offset_x), height/2 - end_corner_height*2, -wall_thickness/2 + bolt_offset_y]) {
+			// Bolt hole
+			translate([x*(width/2 - bolt_offset_x), height/2 - end_corner_height*2, bolt_offset_y]) {
 				rotate([-90, 0, 0]) cylinder(height, d=bolt_diameter, center=false);
 				rotate([0, -45, 0]) cube([bolt_diameter/2, height, bolt_diameter/2], center=false);
 				bolt_depression = bolt_nut_thickness/2;
@@ -83,13 +90,13 @@ module end_panel(wall_thickness) {
 				mirror([0, 1, 0]) translate([-bolt_nut_width/2, 0, 0]) cube([bolt_nut_width, bolt_nut_clearance, bolt_nut_width], center=false);
 			}
 
-			// overlap cutout
-			translate([x*(width/2), height/2 - end_corner_height*3/2, -wall_thickness/2]) {
+			// Overlap cutout
+			translate([x*(width/2), height/2 - end_corner_height*3/2, 0]) {
 				cube([corner_overlap*2, end_corner_height, corner_overlap*4], center=true);
 			}
 
-			// diagonal corner cut
-			translate([x*(width/2), height/2 - end_corner_height*1.9, -wall_thickness/2]) {
+			// Diagonal corner cut
+			translate([x*(width/2), height/2 - end_corner_height*1.9, 0]) {
 				mirror([0, 1, 0]) rotate([0, -45, 0]) cube([width, height, width], center=false);
 			}
 		}
@@ -105,14 +112,16 @@ module button_hole() {
 module back_panel() {
 	wall_thickness = 8;
 	difference() {
-		union() {
-			end_panel(wall_thickness);
-		}
-		translate([0, height/2, 0]) {
+		end_panel(wall_thickness);
+
+		// USB port panel
+		translate([0, height/2, wall_thickness/2]) {
 			cube([usb_panel_width, usb_panel_height*2, usb_panel_depth], center=true);
 			cube([usb_panel_width-1, usb_panel_height*2, wall_thickness*2], center=true);
 		}
-		translate([0, height/2 - usb_panel_height/2, -wall_thickness/2]) {
+
+		// Button holes
+		translate([0, height/2 - usb_panel_height/2, 0]) {
 			offset = usb_panel_width/2;
 			for (x = [
 				-(offset + button_spacing*2),
