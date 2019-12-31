@@ -221,6 +221,35 @@ module right_panel() {
 	}
 }
 
+module panel_joint() {
+	joint_inner = 8;
+	joint_outer = 12;
+	joint_length = 6;
+	spacing = (joint_inner + joint_outer)/2;
+	translate([-joint_length/2, 0, -corner_overlap])
+	linear_extrude(height=corner_overlap*3)
+	polygon([
+		[0, height],
+		[-panel_width, height],
+		[-panel_width, -height],
+		[0, -height],
+		[0, -spacing - joint_inner/2],
+		[joint_length, -spacing - joint_outer/2],
+		[joint_length, -spacing + joint_outer/2],
+		[0, -spacing + joint_inner/2],
+		[0, spacing - joint_inner/2],
+		[joint_length, spacing - joint_outer/2],
+		[joint_length, spacing + joint_outer/2],
+		[0, spacing + joint_inner/2],
+	]);
+}
+
+module panel_split() {
+  translate([0, -height, -corner_overlap*2])
+  mirror([1, 0, 0])
+  cube([panel_width, height*2, corner_overlap*4]);
+}
+
 back_panel();
 translate([0, height*1.5, 0]) front_panel();
 translate([0, height*-1.5, 0]) right_panel();
