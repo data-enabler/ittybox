@@ -30,6 +30,12 @@ button_panel_thickness = 3;
 usb_panel_width = 26;
 usb_panel_height = 31.2;
 usb_panel_depth = 1.6;
+usb_panel_hole_offset = 3.5; // from top/side edge
+usb_panel_hole_diameter = 3; // M3
+usb_panel_board_thickness = 1.65; // horizontal board
+usb_panel_board_pos_y = 17.6; // from top
+usb_panel_inner_width = 12; // USB connector housing
+usb_panel_inner_height = 20; // USB connector housing/3.5mm jack
 
 // M4 x 20mm internal hex button-head screw
 bolt_diameter = 4;
@@ -38,7 +44,7 @@ bolt_nut_thickness = 3.2;
 bolt_nut_width = 8; // outer
 bolt_nut_clearance = 10;
 
-height = 45;
+height = usb_panel_height + plexi_thickness;
 corner_overlap = 20;
 end_corner_height = 8;
 corner_chamfer = 16;

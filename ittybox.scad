@@ -130,14 +130,23 @@ module button_hole() {
 }
 
 module back_panel() {
-	wall_thickness = 8;
+	wall_thickness = 6;
 	difference() {
 		end_panel(wall_thickness);
 
 		// USB port panel
-		translate([0, height/2, wall_thickness/2]) {
-			cube([usb_panel_width, usb_panel_height*2, usb_panel_depth], center=true);
-			cube([usb_panel_width-1, usb_panel_height*2, wall_thickness*2], center=true);
+		translate([0, height/2 - usb_panel_board_pos_y, 0]) {
+			cube([usb_panel_width, usb_panel_board_thickness, wall_thickness*3], center=true);
+		}
+		translate([0, height/2 - usb_panel_height/2, 0]) {
+			cube([usb_panel_inner_width, usb_panel_inner_height, wall_thickness*3], center=true);
+			screw_x = usb_panel_width/2 - usb_panel_hole_offset;
+			screw_y = usb_panel_height/2 - usb_panel_hole_offset;
+			for (xy = [ [screw_x, screw_y], [-screw_x, -screw_y] ]) {
+				translate([each xy, 0]) {
+					cylinder(wall_thickness*3, d=usb_panel_hole_diameter, center=true);
+				}
+			}
 		}
 
 		// Button holes
@@ -178,8 +187,8 @@ module right_panel() {
 }
 
 module panel_joint() {
-	joint_inner = 8;
-	joint_outer = 12;
+	joint_inner = 6;
+	joint_outer = 9;
 	joint_length = 6;
 	spacing = (joint_inner + joint_outer)/2;
 	translate([-joint_length/2, 0, -corner_overlap])
