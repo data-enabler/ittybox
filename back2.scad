@@ -1,8 +1,8 @@
-include <constants.scad>
-use <ittybox.scad>;
+include <_constants.scad>
+use <_ittybox.scad>;
 
 translate([-panel_width/4, 0, 0])
 difference() {
   back_panel();
-  translate([joint_offset, 0, 0]) panel_joint();
+  panel_split();
 }

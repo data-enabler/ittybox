@@ -1,10 +1,11 @@
-include <constants.scad>
+include <_constants.scad>
 
 module panel(wall_thickness, side=false) {
 	bolt_x = side ? bolt_offset_y : bolt_offset_x;
 	bolt_z = side ? bolt_offset_x : bolt_offset_y;
 	width = side ? panel_depth : panel_width;
-	overlap_cutout_potition = side ? 0 : -end_corner_height;
+	overlap_cutout_potition = side ? end_corner_height : -end_corner_height;
+	overlap_cutout_size = side ? end_corner_height*2 : end_corner_height;
 
 	difference() {
 		union() {
@@ -48,8 +49,9 @@ module panel(wall_thickness, side=false) {
 			if (side) {
 				// Plexi support
 				support_height = (panel_width - plexi_width)/2 + 4;
+				support_depth = plexi_thickness + 5;
 				translate([0, -height/2 + plexi_thickness/2, support_height/2]) {
-					cube([width - corner_radius*2, plexi_thickness + 8, support_height], center=true);
+					cube([width - corner_radius*2, support_depth, support_height], center=true);
 				}
 			}
 		}
@@ -65,8 +67,8 @@ module panel(wall_thickness, side=false) {
 			}
 
 			// Overlap cutout
-			translate([x*(width/2), height/2 + overlap_cutout_potition - end_corner_height/2, 0]) {
-				cube([corner_overlap*2, end_corner_height, corner_overlap*4], center=true);
+			translate([x*(width/2), height/2 + overlap_cutout_potition - overlap_cutout_size/2, 0]) {
+				cube([corner_overlap*2, overlap_cutout_size, corner_overlap*4], center=true);
 			}
 
 			// Diagonal corner cut
